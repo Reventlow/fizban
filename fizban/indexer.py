@@ -60,8 +60,12 @@ def chunk_text(text: str, chunk_size: int = 1000, chunk_overlap: int = 200) -> l
         start = new_start
         if start >= len(text):
             break
-        # Don't create tiny trailing chunks
+        # Don't create tiny trailing chunks - append remainder to last chunk
         if len(text) - start < chunk_overlap:
+            # Extend the last chunk to include the remaining text
+            if chunks:
+                last_content, last_start, last_end = chunks[-1]
+                chunks[-1] = (text[last_start:], last_start, len(text))
             break
 
     return chunks

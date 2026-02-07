@@ -16,28 +16,40 @@ mcp = FastMCP("fizban")
 @mcp.tool()
 def repos_pull_all() -> str:
     """Pull latest changes from all configured documentation repos."""
-    from fizban.repos import pull_all
+    try:
+        from fizban.repos import pull_all
 
-    results = pull_all()
-    return json.dumps(results, indent=2)
+        results = pull_all()
+        return json.dumps(results, indent=2)
+    except Exception as e:
+        logger.exception("repos_pull_all failed")
+        return json.dumps({"error": str(e)})
 
 
 @mcp.tool()
 def index_rebuild() -> str:
     """Full rebuild of the search index. Re-indexes all documents from scratch."""
-    from fizban.indexer import rebuild_index
+    try:
+        from fizban.indexer import rebuild_index
 
-    stats = rebuild_index()
-    return json.dumps(stats, indent=2)
+        stats = rebuild_index()
+        return json.dumps(stats, indent=2)
+    except Exception as e:
+        logger.exception("index_rebuild failed")
+        return json.dumps({"error": str(e)})
 
 
 @mcp.tool()
 def index_update() -> str:
     """Incremental index update. Only processes changed or new files, removes deleted ones."""
-    from fizban.indexer import update_index
+    try:
+        from fizban.indexer import update_index
 
-    stats = update_index()
-    return json.dumps(stats, indent=2)
+        stats = update_index()
+        return json.dumps(stats, indent=2)
+    except Exception as e:
+        logger.exception("index_update failed")
+        return json.dumps({"error": str(e)})
 
 
 @mcp.tool()
@@ -48,24 +60,28 @@ def search_semantic(query: str, limit: int = 10) -> str:
         query: Natural language search query.
         limit: Maximum number of results (default: 10).
     """
-    from fizban.search import semantic_search
+    try:
+        from fizban.search import semantic_search
 
-    results = semantic_search(query, limit=limit)
-    return json.dumps(
-        [
-            {
-                "chunk_id": r.chunk_id,
-                "document_id": r.document_id,
-                "path": r.document_path,
-                "title": r.document_title,
-                "repo": r.repo,
-                "content": r.chunk_content,
-                "distance": round(r.distance, 4),
-            }
-            for r in results
-        ],
-        indent=2,
-    )
+        results = semantic_search(query, limit=limit)
+        return json.dumps(
+            [
+                {
+                    "chunk_id": r.chunk_id,
+                    "document_id": r.document_id,
+                    "path": r.document_path,
+                    "title": r.document_title,
+                    "repo": r.repo,
+                    "content": r.chunk_content,
+                    "distance": round(r.distance, 4),
+                }
+                for r in results
+            ],
+            indent=2,
+        )
+    except Exception as e:
+        logger.exception("search_semantic failed")
+        return json.dumps({"error": str(e)})
 
 
 @mcp.tool()
@@ -78,25 +94,28 @@ def docs_fetch(path: str) -> str:
     from fizban.db import Database
 
     db = Database()
-    doc = db.get_document_by_path(path)
-    if doc is None:
-        return json.dumps({"error": f"Document not found: {path}"})
+    try:
+        doc = db.get_document_by_path(path)
+        if doc is None:
+            return json.dumps({"error": f"Document not found: {path}"})
 
-    images = db.get_images(doc.id)
-    return json.dumps(
-        {
-            "id": doc.id,
-            "path": doc.path,
-            "title": doc.title,
-            "repo": doc.repo,
-            "content": doc.content,
-            "images": [
-                {"original": img.original_path, "absolute": img.absolute_path, "alt": img.alt_text}
-                for img in images
-            ],
-        },
-        indent=2,
-    )
+        images = db.get_images(doc.id)
+        return json.dumps(
+            {
+                "id": doc.id,
+                "path": doc.path,
+                "title": doc.title,
+                "repo": doc.repo,
+                "content": doc.content,
+                "images": [
+                    {"original": img.original_path, "absolute": img.absolute_path, "alt": img.alt_text}
+                    for img in images
+                ],
+            },
+            indent=2,
+        )
+    finally:
+        db.close()
 
 
 @mcp.tool()
@@ -109,34 +128,37 @@ def docs_fetch_by_hit(chunk_id: int) -> str:
     from fizban.db import Database
 
     db = Database()
-    chunk = db.get_chunk(chunk_id)
-    if chunk is None:
-        return json.dumps({"error": f"Chunk not found: {chunk_id}"})
+    try:
+        chunk = db.get_chunk(chunk_id)
+        if chunk is None:
+            return json.dumps({"error": f"Chunk not found: {chunk_id}"})
 
-    doc = db.get_document(chunk.document_id)
-    if doc is None:
-        return json.dumps({"error": f"Document not found for chunk: {chunk_id}"})
+        doc = db.get_document(chunk.document_id)
+        if doc is None:
+            return json.dumps({"error": f"Document not found for chunk: {chunk_id}"})
 
-    images = db.get_images(doc.id)
-    return json.dumps(
-        {
-            "id": doc.id,
-            "path": doc.path,
-            "title": doc.title,
-            "repo": doc.repo,
-            "content": doc.content,
-            "hit_chunk": {
-                "chunk_id": chunk.id,
-                "chunk_index": chunk.chunk_index,
-                "content": chunk.content,
+        images = db.get_images(doc.id)
+        return json.dumps(
+            {
+                "id": doc.id,
+                "path": doc.path,
+                "title": doc.title,
+                "repo": doc.repo,
+                "content": doc.content,
+                "hit_chunk": {
+                    "chunk_id": chunk.id,
+                    "chunk_index": chunk.chunk_index,
+                    "content": chunk.content,
+                },
+                "images": [
+                    {"original": img.original_path, "absolute": img.absolute_path, "alt": img.alt_text}
+                    for img in images
+                ],
             },
-            "images": [
-                {"original": img.original_path, "absolute": img.absolute_path, "alt": img.alt_text}
-                for img in images
-            ],
-        },
-        indent=2,
-    )
+            indent=2,
+        )
+    finally:
+        db.close()
 
 
 @mcp.tool()
@@ -159,21 +181,24 @@ def system_status() -> str:
     except Exception as e:
         vector_count = f"error: {e}"
 
-    return json.dumps(
-        {
-            "version": __version__,
-            "config": {
-                "db_path": str(config.db_path),
-                "vector_backend": config.vector_backend,
-                "embedding_model": config.embedding_model,
-                "chunk_size": config.chunk_size,
-                "repos": config.repos,
+    try:
+        return json.dumps(
+            {
+                "version": __version__,
+                "config": {
+                    "db_path": str(config.db_path),
+                    "vector_backend": config.vector_backend,
+                    "embedding_model": config.embedding_model,
+                    "chunk_size": config.chunk_size,
+                    "repos": config.repos,
+                },
+                "database": db_stats,
+                "vector_count": vector_count,
             },
-            "database": db_stats,
-            "vector_count": vector_count,
-        },
-        indent=2,
-    )
+            indent=2,
+        )
+    finally:
+        db.close()
 
 
 def serve() -> None:

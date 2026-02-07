@@ -45,29 +45,32 @@ def semantic_search(
     embeddings = EmbeddingModel(config)
     vector = get_vector_backend(config)
 
-    # Encode the query
-    query_embedding = embeddings.encode_query(query)
+    try:
+        # Encode the query
+        query_embedding = embeddings.encode_query(query)
 
-    # Search vectors
-    hits = vector.search(query_embedding, limit=limit)
+        # Search vectors
+        hits = vector.search(query_embedding, limit=limit)
 
-    results = []
-    for chunk_id, distance in hits:
-        chunk = db.get_chunk(chunk_id)
-        if chunk is None:
-            continue
-        doc = db.get_document(chunk.document_id)
-        if doc is None:
-            continue
-        results.append(SearchResult(
-            chunk_id=chunk_id,
-            document_id=doc.id,
-            document_path=doc.path,
-            document_title=doc.title,
-            repo=doc.repo,
-            chunk_content=chunk.content,
-            chunk_index=chunk.chunk_index,
-            distance=distance,
-        ))
+        results = []
+        for chunk_id, distance in hits:
+            chunk = db.get_chunk(chunk_id)
+            if chunk is None:
+                continue
+            doc = db.get_document(chunk.document_id)
+            if doc is None:
+                continue
+            results.append(SearchResult(
+                chunk_id=chunk_id,
+                document_id=doc.id,
+                document_path=doc.path,
+                document_title=doc.title,
+                repo=doc.repo,
+                chunk_content=chunk.content,
+                chunk_index=chunk.chunk_index,
+                distance=distance,
+            ))
 
-    return results
+        return results
+    finally:
+        db.close()

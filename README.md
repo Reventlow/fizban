@@ -62,7 +62,7 @@ Configuration is via environment variables with sensible defaults:
 
 ## Indexed Repositories
 
-By default, Fizban indexes these local repos:
+Repos to index are currently hardcoded in `fizban/config.py`. The defaults are:
 
 - `/home/gorm/Documents/Fynbus_Guides`
 - `/home/gorm/Documents/infrastructure`
@@ -72,22 +72,7 @@ By default, Fizban indexes these local repos:
 
 ### Registering with Claude Code
 
-Add to `~/.claude.json` (Claude Code config):
-
-```json
-{
-  "mcpServers": {
-    "fizban": {
-      "command": "fizban",
-      "args": ["serve-mcp"]
-    }
-  }
-}
-```
-
-### Registering with Claude Desktop
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or the equivalent config on Linux:
+Add to `.mcp.json` (project-level) or `~/.claude.json` (global):
 
 ```json
 {
@@ -148,6 +133,7 @@ fizban/
 │       ├── vec_backend.py  # sqlite-vec backend
 │       └── vss_backend.py  # sqlite-vss backend
 └── tests/
+    ├── __init__.py
     ├── test_markdown_parser.py
     └── test_chunking.py
 ```
