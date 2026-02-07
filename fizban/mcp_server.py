@@ -10,7 +10,7 @@ from fizban.config import get_config
 
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP("fizban", version=__version__)
+mcp = FastMCP("fizban")
 
 
 @mcp.tool()
