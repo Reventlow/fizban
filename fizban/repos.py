@@ -28,14 +28,18 @@ def pull_all(config: Config | None = None) -> dict[str, str]:
         try:
             result = subprocess.run(
                 ["git", "-C", str(path), "pull", "--ff-only"],
-                capture_output=True, text=True, timeout=60,
+                capture_output=True,
+                text=True,
+                timeout=60,
             )
             if result.returncode == 0:
                 results[repo_path] = "ok"
                 logger.info("Pulled %s: %s", repo_path, result.stdout.strip())
             else:
                 results[repo_path] = f"error: {result.stderr.strip()}"
-                logger.warning("Failed to pull %s: %s", repo_path, result.stderr.strip())
+                logger.warning(
+                    "Failed to pull %s: %s", repo_path, result.stderr.strip()
+                )
         except subprocess.TimeoutExpired:
             results[repo_path] = "error: timeout"
         except Exception as e:

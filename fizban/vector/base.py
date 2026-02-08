@@ -33,7 +33,9 @@ class VectorBackend(ABC):
         """Remove vectors by their chunk IDs."""
 
     @abstractmethod
-    def search(self, query_vector: np.ndarray, limit: int = 10) -> list[tuple[int, float]]:
+    def search(
+        self, query_vector: np.ndarray, limit: int = 10
+    ) -> list[tuple[int, float]]:
         """Find the nearest vectors to the query.
 
         Args:

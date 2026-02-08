@@ -76,10 +76,14 @@ class SqliteVecBackend(VectorBackend):
         if not ids:
             return
         placeholders = ",".join("?" for _ in ids)
-        self.conn.execute(f"DELETE FROM vec_chunks WHERE chunk_id IN ({placeholders})", ids)
+        self.conn.execute(
+            f"DELETE FROM vec_chunks WHERE chunk_id IN ({placeholders})", ids
+        )
         self.conn.commit()
 
-    def search(self, query_vector: np.ndarray, limit: int = 10) -> list[tuple[int, float]]:
+    def search(
+        self, query_vector: np.ndarray, limit: int = 10
+    ) -> list[tuple[int, float]]:
         """Search for nearest neighbors using sqlite-vec."""
         rows = self.conn.execute(
             """SELECT chunk_id, distance

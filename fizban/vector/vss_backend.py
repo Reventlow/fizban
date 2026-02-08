@@ -58,7 +58,9 @@ class SqliteVssBackend(VectorBackend):
                 chunk_id INTEGER NOT NULL UNIQUE
             )
         """)
-        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_vss_chunk_map ON vss_chunk_map(chunk_id)")
+        self.conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_vss_chunk_map ON vss_chunk_map(chunk_id)"
+        )
         self.conn.commit()
         logger.info("Vector index initialized (sqlite-vss, dim=%d)", dimension)
 
@@ -72,8 +74,12 @@ class SqliteVssBackend(VectorBackend):
                 "SELECT rowid FROM vss_chunk_map WHERE chunk_id = ?", (chunk_id,)
             ).fetchone()
             if existing:
-                self.conn.execute("DELETE FROM vss_chunks WHERE rowid = ?", (existing[0],))
-                self.conn.execute("DELETE FROM vss_chunk_map WHERE chunk_id = ?", (chunk_id,))
+                self.conn.execute(
+                    "DELETE FROM vss_chunks WHERE rowid = ?", (existing[0],)
+                )
+                self.conn.execute(
+                    "DELETE FROM vss_chunk_map WHERE chunk_id = ?", (chunk_id,)
+                )
 
             # Insert into map to get rowid
             cursor = self.conn.execute(
@@ -98,11 +104,17 @@ class SqliteVssBackend(VectorBackend):
                 "SELECT rowid FROM vss_chunk_map WHERE chunk_id = ?", (chunk_id,)
             ).fetchone()
             if existing:
-                self.conn.execute("DELETE FROM vss_chunks WHERE rowid = ?", (existing[0],))
-                self.conn.execute("DELETE FROM vss_chunk_map WHERE chunk_id = ?", (chunk_id,))
+                self.conn.execute(
+                    "DELETE FROM vss_chunks WHERE rowid = ?", (existing[0],)
+                )
+                self.conn.execute(
+                    "DELETE FROM vss_chunk_map WHERE chunk_id = ?", (chunk_id,)
+                )
         self.conn.commit()
 
-    def search(self, query_vector: np.ndarray, limit: int = 10) -> list[tuple[int, float]]:
+    def search(
+        self, query_vector: np.ndarray, limit: int = 10
+    ) -> list[tuple[int, float]]:
         """Search for nearest neighbors using sqlite-vss."""
         vec_json = json.dumps(query_vector.astype(float).tolist())
         rows = self.conn.execute(

@@ -21,7 +21,7 @@ def repos_pull_all() -> str:
 
         results = pull_all()
         return json.dumps(results, indent=2)
-    except Exception as e:
+    except Exception:
         logger.exception("repos_pull_all failed")
         return json.dumps({"error": "Internal error. Check server logs for details."})
 
@@ -34,7 +34,7 @@ def index_rebuild() -> str:
 
         stats = rebuild_index()
         return json.dumps(stats, indent=2)
-    except Exception as e:
+    except Exception:
         logger.exception("index_rebuild failed")
         return json.dumps({"error": "Internal error. Check server logs for details."})
 
@@ -47,13 +47,15 @@ def index_update() -> str:
 
         stats = update_index()
         return json.dumps(stats, indent=2)
-    except Exception as e:
+    except Exception:
         logger.exception("index_update failed")
         return json.dumps({"error": "Internal error. Check server logs for details."})
 
 
 @mcp.tool()
-def search_semantic(query: str, limit: int = 10, distance_threshold: float | None = None) -> str:
+def search_semantic(
+    query: str, limit: int = 10, distance_threshold: float | None = None
+) -> str:
     """Semantic search over indexed documentation.
 
     Args:
@@ -66,14 +68,18 @@ def search_semantic(query: str, limit: int = 10, distance_threshold: float | Non
     try:
         from fizban.search import semantic_search
 
-        results = semantic_search(query, limit=limit, distance_threshold=distance_threshold)
+        results = semantic_search(
+            query, limit=limit, distance_threshold=distance_threshold
+        )
         if not results:
-            return json.dumps({
-                "results": [],
-                "message": "No results found within the distance threshold. "
-                           "The query may not match any indexed documentation. "
-                           "Try rephrasing or use a higher distance_threshold.",
-            })
+            return json.dumps(
+                {
+                    "results": [],
+                    "message": "No results found within the distance threshold. "
+                    "The query may not match any indexed documentation. "
+                    "Try rephrasing or use a higher distance_threshold.",
+                }
+            )
         return json.dumps(
             [
                 {
@@ -89,7 +95,7 @@ def search_semantic(query: str, limit: int = 10, distance_threshold: float | Non
             ],
             indent=2,
         )
-    except Exception as e:
+    except Exception:
         logger.exception("search_semantic failed")
         return json.dumps({"error": "Internal error. Check server logs for details."})
 
@@ -124,7 +130,11 @@ def docs_fetch(path: str) -> str:
                     "repo": doc.repo,
                     "content": doc.content,
                     "images": [
-                        {"original": img.original_path, "absolute": img.absolute_path, "alt": img.alt_text}
+                        {
+                            "original": img.original_path,
+                            "absolute": img.absolute_path,
+                            "alt": img.alt_text,
+                        }
                         for img in images
                     ],
                 },
@@ -132,7 +142,7 @@ def docs_fetch(path: str) -> str:
             )
         finally:
             db.close()
-    except Exception as e:
+    except Exception:
         logger.exception("docs_fetch failed")
         return json.dumps({"error": "Internal error. Check server logs for details."})
 
@@ -171,7 +181,11 @@ def docs_fetch_by_hit(chunk_id: int) -> str:
                         "content": chunk.content,
                     },
                     "images": [
-                        {"original": img.original_path, "absolute": img.absolute_path, "alt": img.alt_text}
+                        {
+                            "original": img.original_path,
+                            "absolute": img.absolute_path,
+                            "alt": img.alt_text,
+                        }
                         for img in images
                     ],
                 },
@@ -179,7 +193,7 @@ def docs_fetch_by_hit(chunk_id: int) -> str:
             )
         finally:
             db.close()
-    except Exception as e:
+    except Exception:
         logger.exception("docs_fetch_by_hit failed")
         return json.dumps({"error": "Internal error. Check server logs for details."})
 
@@ -193,10 +207,11 @@ def system_status() -> str:
         from fizban.vector import get_vector_backend
 
         home = str(Path.home())
+
         def redact_path(p: str) -> str:
             """Replace the home directory prefix with ~/."""
             if p.startswith(home):
-                return "~/" + p[len(home):].lstrip("/")
+                return "~/" + p[len(home) :].lstrip("/")
             return Path(p).name
 
         config = get_config()
@@ -204,14 +219,14 @@ def system_status() -> str:
 
         try:
             db_stats = db.stats()
-        except Exception as e:
+        except Exception:
             logger.exception("system_status: db.stats() failed")
             db_stats = {"error": "Unable to retrieve database stats."}
 
         try:
             vector = get_vector_backend(config)
             vector_count = vector.count()
-        except Exception as e:
+        except Exception:
             logger.exception("system_status: vector count failed")
             vector_count = "error: unable to retrieve vector count"
 
@@ -233,7 +248,7 @@ def system_status() -> str:
             )
         finally:
             db.close()
-    except Exception as e:
+    except Exception:
         logger.exception("system_status failed")
         return json.dumps({"error": "Internal error. Check server logs for details."})
 

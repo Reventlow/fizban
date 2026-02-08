@@ -9,32 +9,42 @@ from pathlib import Path
 class Config:
     """Fizban configuration loaded from environment variables."""
 
-    db_path: Path = field(default_factory=lambda: Path(
-        os.environ.get("FIZBAN_DB_PATH",
-                       str(Path.home() / ".local" / "share" / "fizban" / "fizban.db"))
-    ))
-    vector_backend: str = field(default_factory=lambda:
-        os.environ.get("FIZBAN_VECTOR_BACKEND", "vec")
+    db_path: Path = field(
+        default_factory=lambda: Path(
+            os.environ.get(
+                "FIZBAN_DB_PATH",
+                str(Path.home() / ".local" / "share" / "fizban" / "fizban.db"),
+            )
+        )
     )
-    embedding_model: str = field(default_factory=lambda:
-        os.environ.get("FIZBAN_EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+    vector_backend: str = field(
+        default_factory=lambda: os.environ.get("FIZBAN_VECTOR_BACKEND", "vec")
     )
-    chunk_size: int = field(default_factory=lambda:
-        int(os.environ.get("FIZBAN_CHUNK_SIZE", "1000"))
+    embedding_model: str = field(
+        default_factory=lambda: os.environ.get(
+            "FIZBAN_EMBEDDING_MODEL", "all-MiniLM-L6-v2"
+        )
     )
-    chunk_overlap: int = field(default_factory=lambda:
-        int(os.environ.get("FIZBAN_CHUNK_OVERLAP", "200"))
+    chunk_size: int = field(
+        default_factory=lambda: int(os.environ.get("FIZBAN_CHUNK_SIZE", "1000"))
     )
-    distance_threshold: float = field(default_factory=lambda:
-        float(os.environ.get("FIZBAN_DISTANCE_THRESHOLD", "1.1"))
+    chunk_overlap: int = field(
+        default_factory=lambda: int(os.environ.get("FIZBAN_CHUNK_OVERLAP", "200"))
+    )
+    distance_threshold: float = field(
+        default_factory=lambda: float(
+            os.environ.get("FIZBAN_DISTANCE_THRESHOLD", "1.1")
+        )
     )
     # Repos must be configured via FIZBAN_REPOS env var (comma-separated paths)
     # or passed explicitly. No default paths to avoid leaking user-specific locations.
-    repos: list[str] = field(default_factory=lambda: [
-        p.strip()
-        for p in os.environ.get("FIZBAN_REPOS", "").split(",")
-        if p.strip()
-    ])
+    repos: list[str] = field(
+        default_factory=lambda: [
+            p.strip()
+            for p in os.environ.get("FIZBAN_REPOS", "").split(",")
+            if p.strip()
+        ]
+    )
 
     def ensure_db_dir(self) -> None:
         """Create the database directory if it doesn't exist."""

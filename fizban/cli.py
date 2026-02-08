@@ -41,7 +41,9 @@ def rebuild() -> None:
 
     click.echo("Rebuilding index (this may take a while)...")
     stats = rebuild_index()
-    click.echo(f"Done. Scanned {stats['total_files']} files, indexed {stats['indexed']}.")
+    click.echo(
+        f"Done. Scanned {stats['total_files']} files, indexed {stats['indexed']}."
+    )
 
 
 @cli.command()
@@ -82,10 +84,13 @@ def doctor() -> None:
     # Check repos
     click.echo("\nRepositories:")
     from pathlib import Path
+
     for repo in config.repos:
         exists = Path(repo).exists()
         is_git = (Path(repo) / ".git").exists()
-        status = "ok" if exists and is_git else ("exists (not git)" if exists else "missing")
+        status = (
+            "ok" if exists and is_git else ("exists (not git)" if exists else "missing")
+        )
         click.echo(f"  [{status}] {repo}")
 
     # Check vector backend
@@ -93,9 +98,11 @@ def doctor() -> None:
     try:
         if config.vector_backend == "vec":
             import sqlite_vec  # noqa: F401
+
             click.echo("  sqlite-vec: available")
         else:
             import sqlite_vss  # noqa: F401
+
             click.echo("  sqlite-vss: available")
     except ImportError:
         click.echo(f"  {config.vector_backend}: NOT available")
@@ -104,6 +111,7 @@ def doctor() -> None:
     click.echo("\nEmbeddings:")
     try:
         import sentence_transformers  # noqa: F401
+
         click.echo("  sentence-transformers: available")
     except ImportError:
         click.echo("  sentence-transformers: NOT available")
@@ -112,13 +120,16 @@ def doctor() -> None:
     if config.db_path.exists():
         click.echo("\nDatabase stats:")
         from fizban.db import Database
+
         db = Database(config)
         try:
             stats = db.stats()
             click.echo(f"  Documents: {stats['documents']}")
             click.echo(f"  Chunks:    {stats['chunks']}")
             click.echo(f"  Images:    {stats['images']}")
-            click.echo(f"  Repos:     {', '.join(stats['repos']) if stats['repos'] else 'none'}")
+            click.echo(
+                f"  Repos:     {', '.join(stats['repos']) if stats['repos'] else 'none'}"
+            )
         except Exception as e:
             click.echo(f"  Error reading DB: {e}")
         finally:
@@ -127,14 +138,12 @@ def doctor() -> None:
     # Print MCP registration info
     click.echo("\n--- MCP Registration ---")
     click.echo("Add to .mcp.json (project) or ~/.claude.json (global):")
-    click.echo(json.dumps({
-        "mcpServers": {
-            "fizban": {
-                "command": "fizban",
-                "args": ["serve-mcp"]
-            }
-        }
-    }, indent=2))
+    click.echo(
+        json.dumps(
+            {"mcpServers": {"fizban": {"command": "fizban", "args": ["serve-mcp"]}}},
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

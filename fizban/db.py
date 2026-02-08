@@ -5,7 +5,6 @@ import logging
 import sqlite3
 import time
 from dataclasses import dataclass
-from pathlib import Path
 
 from fizban.config import Config, get_config
 
@@ -121,8 +120,9 @@ class Database:
 
     # --- Document operations ---
 
-    def upsert_document(self, repo: str, path: str, title: str, content: str,
-                        last_modified: float) -> int:
+    def upsert_document(
+        self, repo: str, path: str, title: str, content: str, last_modified: float
+    ) -> int:
         """Insert or update a document. Returns the document ID."""
         hash_val = content_hash(content)
         now = time.time()
@@ -142,14 +142,18 @@ class Database:
 
     def get_document(self, doc_id: int) -> DocumentRecord | None:
         """Fetch a document by ID."""
-        row = self.conn.execute("SELECT * FROM documents WHERE id = ?", (doc_id,)).fetchone()
+        row = self.conn.execute(
+            "SELECT * FROM documents WHERE id = ?", (doc_id,)
+        ).fetchone()
         if row is None:
             return None
         return DocumentRecord(**dict(row))
 
     def get_document_by_path(self, path: str) -> DocumentRecord | None:
         """Fetch a document by file path."""
-        row = self.conn.execute("SELECT * FROM documents WHERE path = ?", (path,)).fetchone()
+        row = self.conn.execute(
+            "SELECT * FROM documents WHERE path = ?", (path,)
+        ).fetchone()
         if row is None:
             return None
         return DocumentRecord(**dict(row))
@@ -157,7 +161,9 @@ class Database:
     def list_documents(self, repo: str | None = None) -> list[DocumentRecord]:
         """List all documents, optionally filtered by repo."""
         if repo:
-            rows = self.conn.execute("SELECT * FROM documents WHERE repo = ? ORDER BY path", (repo,)).fetchall()
+            rows = self.conn.execute(
+                "SELECT * FROM documents WHERE repo = ? ORDER BY path", (repo,)
+            ).fetchall()
         else:
             rows = self.conn.execute("SELECT * FROM documents ORDER BY path").fetchall()
         return [DocumentRecord(**dict(r)) for r in rows]
@@ -169,20 +175,26 @@ class Database:
 
     def get_content_hash(self, path: str) -> str | None:
         """Get the content hash for a document by path."""
-        row = self.conn.execute("SELECT content_hash FROM documents WHERE path = ?", (path,)).fetchone()
+        row = self.conn.execute(
+            "SELECT content_hash FROM documents WHERE path = ?", (path,)
+        ).fetchone()
         return row[0] if row else None
 
     def get_all_paths(self, repo: str | None = None) -> set[str]:
         """Get all indexed document paths."""
         if repo:
-            rows = self.conn.execute("SELECT path FROM documents WHERE repo = ?", (repo,)).fetchall()
+            rows = self.conn.execute(
+                "SELECT path FROM documents WHERE repo = ?", (repo,)
+            ).fetchall()
         else:
             rows = self.conn.execute("SELECT path FROM documents").fetchall()
         return {r[0] for r in rows}
 
     # --- Chunk operations ---
 
-    def insert_chunks(self, document_id: int, chunks: list[tuple[int, str, int, int]]) -> list[int]:
+    def insert_chunks(
+        self, document_id: int, chunks: list[tuple[int, str, int, int]]
+    ) -> list[int]:
         """Insert chunks for a document. Each tuple: (chunk_index, content, start_char, end_char).
         Returns list of chunk IDs."""
         # Delete existing chunks for this document first
@@ -200,20 +212,25 @@ class Database:
     def get_chunks(self, document_id: int) -> list[ChunkRecord]:
         """Get all chunks for a document."""
         rows = self.conn.execute(
-            "SELECT * FROM chunks WHERE document_id = ? ORDER BY chunk_index", (document_id,)
+            "SELECT * FROM chunks WHERE document_id = ? ORDER BY chunk_index",
+            (document_id,),
         ).fetchall()
         return [ChunkRecord(**dict(r)) for r in rows]
 
     def get_chunk(self, chunk_id: int) -> ChunkRecord | None:
         """Get a single chunk by ID."""
-        row = self.conn.execute("SELECT * FROM chunks WHERE id = ?", (chunk_id,)).fetchone()
+        row = self.conn.execute(
+            "SELECT * FROM chunks WHERE id = ?", (chunk_id,)
+        ).fetchone()
         if row is None:
             return None
         return ChunkRecord(**dict(row))
 
     # --- Image operations ---
 
-    def insert_images(self, document_id: int, images: list[tuple[str, str, str]]) -> None:
+    def insert_images(
+        self, document_id: int, images: list[tuple[str, str, str]]
+    ) -> None:
         """Insert image references for a document. Each tuple: (original_path, absolute_path, alt_text)."""
         self.conn.execute("DELETE FROM images WHERE document_id = ?", (document_id,))
         for original_path, absolute_path, alt_text in images:

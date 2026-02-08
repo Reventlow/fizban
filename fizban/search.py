@@ -44,7 +44,11 @@ def semantic_search(
         List of SearchResult ordered by relevance (ascending distance).
     """
     config = config or get_config()
-    threshold = distance_threshold if distance_threshold is not None else config.distance_threshold
+    threshold = (
+        distance_threshold
+        if distance_threshold is not None
+        else config.distance_threshold
+    )
     db = Database(config)
     embeddings = EmbeddingModel(config)
     vector = get_vector_backend(config)
@@ -66,16 +70,18 @@ def semantic_search(
             doc = db.get_document(chunk.document_id)
             if doc is None:
                 continue
-            results.append(SearchResult(
-                chunk_id=chunk_id,
-                document_id=doc.id,
-                document_path=doc.path,
-                document_title=doc.title,
-                repo=doc.repo,
-                chunk_content=chunk.content,
-                chunk_index=chunk.chunk_index,
-                distance=distance,
-            ))
+            results.append(
+                SearchResult(
+                    chunk_id=chunk_id,
+                    document_id=doc.id,
+                    document_path=doc.path,
+                    document_title=doc.title,
+                    repo=doc.repo,
+                    chunk_content=chunk.content,
+                    chunk_index=chunk.chunk_index,
+                    distance=distance,
+                )
+            )
 
         return results
     finally:

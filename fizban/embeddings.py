@@ -35,13 +35,17 @@ class EmbeddingModel:
         if self._model is None:
             logger.info("Loading embedding model: %s", self.config.embedding_model)
             from sentence_transformers import SentenceTransformer
+
             # Explicitly disable trust_remote_code to prevent model repos from
             # executing arbitrary Python code during loading.
             self._model = SentenceTransformer(
                 self.config.embedding_model,
                 trust_remote_code=False,
             )
-            logger.info("Model loaded (dimension=%d)", self._model.get_sentence_embedding_dimension())
+            logger.info(
+                "Model loaded (dimension=%d)",
+                self._model.get_sentence_embedding_dimension(),
+            )
         return self._model
 
     def encode(self, texts: list[str]) -> np.ndarray:

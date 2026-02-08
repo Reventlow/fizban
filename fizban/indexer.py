@@ -1,7 +1,6 @@
 """Document indexing with incremental update support."""
 
 import logging
-import time
 from pathlib import Path
 
 from fizban.config import Config, get_config
@@ -15,7 +14,9 @@ from fizban.vector.base import VectorBackend
 logger = logging.getLogger(__name__)
 
 
-def chunk_text(text: str, chunk_size: int = 1000, chunk_overlap: int = 200) -> list[tuple[str, int, int]]:
+def chunk_text(
+    text: str, chunk_size: int = 1000, chunk_overlap: int = 200
+) -> list[tuple[str, int, int]]:
     """Split text into overlapping chunks.
 
     Args:
@@ -112,7 +113,9 @@ def _index_file(
 
     # Upsert document
     last_modified = file_path.stat().st_mtime
-    doc_id = db.upsert_document(repo, path_str, parsed.title, parsed.content, last_modified)
+    doc_id = db.upsert_document(
+        repo, path_str, parsed.title, parsed.content, last_modified
+    )
 
     # Delete old vectors for this document's chunks
     old_chunks = db.get_chunks(doc_id)
@@ -121,7 +124,9 @@ def _index_file(
 
     # Chunk text
     text_chunks = chunk_text(parsed.content, config.chunk_size, config.chunk_overlap)
-    chunk_data = [(i, content, start, end) for i, (content, start, end) in enumerate(text_chunks)]
+    chunk_data = [
+        (i, content, start, end) for i, (content, start, end) in enumerate(text_chunks)
+    ]
 
     # Insert chunks into DB
     chunk_ids = db.insert_chunks(doc_id, chunk_data)
@@ -133,10 +138,14 @@ def _index_file(
         vector.add_vectors(chunk_ids, vectors)
 
     # Store image references
-    image_data = [(img.original_path, img.absolute_path, img.alt_text) for img in parsed.images]
+    image_data = [
+        (img.original_path, img.absolute_path, img.alt_text) for img in parsed.images
+    ]
     db.insert_images(doc_id, image_data)
 
-    logger.info("Indexed %s (%d chunks, %d images)", path_str, len(chunk_ids), len(image_data))
+    logger.info(
+        "Indexed %s (%d chunks, %d images)", path_str, len(chunk_ids), len(image_data)
+    )
     return True
 
 

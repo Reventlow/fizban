@@ -28,7 +28,7 @@ class ParsedDocument:
 
 def extract_title(content: str) -> str:
     """Extract the first H1 heading from markdown content."""
-    match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+    match = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
     if match:
         return match.group(1).strip()
     # Fall back to first non-empty line
@@ -39,7 +39,9 @@ def extract_title(content: str) -> str:
     return "Untitled"
 
 
-def extract_images(content: str, file_path: Path, repo_root: Path | None = None) -> list[ImageRef]:
+def extract_images(
+    content: str, file_path: Path, repo_root: Path | None = None
+) -> list[ImageRef]:
     """Extract image references from markdown and resolve relative paths.
 
     Handles both ![alt](path) and ![alt](path "title") syntax.
@@ -63,7 +65,7 @@ def extract_images(content: str, file_path: Path, repo_root: Path | None = None)
         img_path = match.group(2)
 
         # Skip URLs
-        if img_path.startswith(('http://', 'https://', 'data:')):
+        if img_path.startswith(("http://", "https://", "data:")):
             continue
 
         # Resolve relative path against the markdown file's directory
@@ -76,20 +78,25 @@ def extract_images(content: str, file_path: Path, repo_root: Path | None = None)
             except ValueError:
                 logger.warning(
                     "Skipping image with path traversal outside repo: %s (resolved to %s)",
-                    img_path, resolved,
+                    img_path,
+                    resolved,
                 )
                 continue
 
-        images.append(ImageRef(
-            original_path=img_path,
-            absolute_path=str(resolved),
-            alt_text=alt_text,
-        ))
+        images.append(
+            ImageRef(
+                original_path=img_path,
+                absolute_path=str(resolved),
+                alt_text=alt_text,
+            )
+        )
 
     return images
 
 
-def parse_markdown(content: str, file_path: Path, repo_root: Path | None = None) -> ParsedDocument:
+def parse_markdown(
+    content: str, file_path: Path, repo_root: Path | None = None
+) -> ParsedDocument:
     """Parse a markdown document, extracting metadata and image references.
 
     Args:
