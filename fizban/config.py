@@ -25,10 +25,15 @@ class Config:
     chunk_overlap: int = field(default_factory=lambda:
         int(os.environ.get("FIZBAN_CHUNK_OVERLAP", "200"))
     )
+    distance_threshold: float = field(default_factory=lambda:
+        float(os.environ.get("FIZBAN_DISTANCE_THRESHOLD", "1.1"))
+    )
+    # Repos must be configured via FIZBAN_REPOS env var (comma-separated paths)
+    # or passed explicitly. No default paths to avoid leaking user-specific locations.
     repos: list[str] = field(default_factory=lambda: [
-        "/home/gorm/Documents/Fynbus_Guides",
-        "/home/gorm/Documents/infrastructure",
-        "/home/gorm/Documents/infrastructure-as-code",
+        p.strip()
+        for p in os.environ.get("FIZBAN_REPOS", "").split(",")
+        if p.strip()
     ])
 
     def ensure_db_dir(self) -> None:

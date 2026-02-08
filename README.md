@@ -59,14 +59,15 @@ Configuration is via environment variables with sensible defaults:
 | `FIZBAN_EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | Sentence-transformers model |
 | `FIZBAN_CHUNK_SIZE` | `1000` | Characters per chunk |
 | `FIZBAN_CHUNK_OVERLAP` | `200` | Overlap between chunks |
+| `FIZBAN_REPOS` | *(empty)* | Comma-separated list of repo paths to index |
 
 ## Indexed Repositories
 
-Repos to index are currently hardcoded in `fizban/config.py`. The defaults are:
+Configure repos to index via the `FIZBAN_REPOS` environment variable (comma-separated absolute paths):
 
-- `/home/gorm/Documents/Fynbus_Guides`
-- `/home/gorm/Documents/infrastructure`
-- `/home/gorm/Documents/infrastructure-as-code`
+```bash
+export FIZBAN_REPOS="/home/user/docs/guides,/home/user/docs/infrastructure"
+```
 
 ## MCP Server
 

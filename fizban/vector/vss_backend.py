@@ -37,7 +37,9 @@ class SqliteVssBackend(VectorBackend):
 
             self.config.ensure_db_dir()
             self._conn = sqlite3.connect(str(self.config.db_path))
+            self._conn.enable_load_extension(True)
             sqlite_vss.load(self._conn)
+            self._conn.enable_load_extension(False)
         return self._conn
 
     def init_index(self, dimension: int) -> None:

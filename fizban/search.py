@@ -29,6 +29,7 @@ def semantic_search(
     query: str,
     config: Config | None = None,
     limit: int = 10,
+    distance_threshold: float | None = None,
 ) -> list[SearchResult]:
     """Perform semantic search over the indexed documents.
 
@@ -36,11 +37,14 @@ def semantic_search(
         query: Natural language search query.
         config: Optional configuration override.
         limit: Maximum number of results.
+        distance_threshold: Maximum distance for results. Results above this
+            threshold are excluded. Defaults to config value.
 
     Returns:
         List of SearchResult ordered by relevance (ascending distance).
     """
     config = config or get_config()
+    threshold = distance_threshold if distance_threshold is not None else config.distance_threshold
     db = Database(config)
     embeddings = EmbeddingModel(config)
     vector = get_vector_backend(config)
@@ -54,6 +58,8 @@ def semantic_search(
 
         results = []
         for chunk_id, distance in hits:
+            if distance > threshold:
+                continue
             chunk = db.get_chunk(chunk_id)
             if chunk is None:
                 continue

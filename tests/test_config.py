@@ -39,7 +39,7 @@ class TestConfigDefaults:
     def test_default_repos_is_list(self):
         cfg = Config()
         assert isinstance(cfg.repos, list)
-        assert len(cfg.repos) == 3
+        assert len(cfg.repos) == 0  # Default is empty; configure via FIZBAN_REPOS env var
 
 
 class TestConfigEnvOverrides:

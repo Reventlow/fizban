@@ -107,8 +107,8 @@ def _index_file(
     if existing_hash == new_hash:
         return False
 
-    # Parse markdown
-    parsed = parse_markdown(raw_content, file_path)
+    # Parse markdown (pass repo root to sandbox image path resolution)
+    parsed = parse_markdown(raw_content, file_path, repo_root=Path(repo))
 
     # Upsert document
     last_modified = file_path.stat().st_mtime
