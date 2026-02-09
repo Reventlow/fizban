@@ -11,8 +11,8 @@ How to set up Fizban on a new computer with Claude Code.
 ## Step 1: Clone and install Fizban
 
 ```bash
-git clone git@github.com:Reventlow/fizban.git
-cd fizban
+git clone git@github.com:Reventlow/fizban.git ~/fizban
+cd ~/fizban
 
 # Create a virtual environment
 python -m venv .venv
@@ -39,52 +39,64 @@ git clone <your-docs-repo-1>
 git clone <your-docs-repo-2>
 ```
 
-## Step 3: Register Fizban as an MCP server in Claude Code
+## Step 3: Configure repo paths
+
+Repo paths are stored in a single env file so they are not hardcoded in the MCP
+config. This makes it easy to move between machines — just edit the env file.
 
 ```bash
-claude mcp add fizban \
-  --scope user \
-  -e FIZBAN_REPOS="/home/YOURUSER/Documents/repo1,/home/YOURUSER/Documents/repo2" \
-  -- fizban serve-mcp
+mkdir -p ~/.config/fizban
 ```
 
-Replace `YOURUSER` and the repo paths with your actual values.
+Create `~/.config/fizban/env` with your repo paths:
 
-Alternatively, add it manually to `~/.claude.json`:
+```bash
+# Comma-separated absolute paths to documentation repositories
+FIZBAN_REPOS="${HOME}/Documents/repo1,${HOME}/Documents/repo2"
+```
+
+`${HOME}` is expanded at runtime, so the file is portable across users.
+
+## Step 4: Register Fizban as an MCP server in Claude Code
+
+The repo ships with a `run.sh` wrapper script that loads `~/.config/fizban/env`
+before running fizban. This keeps repo paths out of the MCP config.
+
+Add to `~/.claude.json`:
 
 ```json
 {
   "mcpServers": {
     "fizban": {
-      "command": "fizban",
-      "args": ["serve-mcp"],
-      "env": {
-        "FIZBAN_REPOS": "/home/YOURUSER/Documents/repo1,/home/YOURUSER/Documents/repo2"
-      }
+      "type": "stdio",
+      "command": "/home/YOURUSER/fizban/run.sh",
+      "args": ["serve-mcp"]
     }
   }
 }
 ```
 
-> **Note**: If you installed Fizban in a venv, use the full path to the binary:
-> `"command": "/path/to/fizban/.venv/bin/fizban"`
+Replace `YOURUSER` with your actual username. No `env` block is needed — the
+wrapper script handles that.
 
-## Step 4: Build the index
+> **Alternatively**, you can skip the wrapper and pass `FIZBAN_REPOS` directly
+> in the MCP config `env` block, but then you have hardcoded paths in two places.
 
-Start Claude Code and ask it to rebuild the index, or run it directly:
+## Step 5: Build the index
 
 ```bash
-fizban rebuild
+~/fizban/run.sh rebuild
 ```
+
+Or start Claude Code and ask it to rebuild the index.
 
 Verify with:
 
 ```bash
-fizban serve-mcp
-# Then in Claude Code, use system_status to check document/chunk counts
+~/fizban/run.sh doctor
 ```
 
-## Step 5: Verify in Claude Code
+## Step 6: Verify in Claude Code
 
 Start a new Claude Code session and test:
 

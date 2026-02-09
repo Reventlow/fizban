@@ -14,8 +14,10 @@ Local documentation knowledge base with semantic search, powered by SQLite and s
 ## Installation
 
 ```bash
-# Clone and install in development mode
-cd /home/gorm/projects/fizban
+git clone git@github.com:Reventlow/fizban.git ~/fizban
+cd ~/fizban
+python -m venv .venv
+source .venv/bin/activate
 pip install -e ".[dev,vec]"
 ```
 
@@ -63,33 +65,47 @@ Configuration is via environment variables with sensible defaults:
 
 ## Indexed Repositories
 
-Configure repos to index via the `FIZBAN_REPOS` environment variable (comma-separated absolute paths):
+Configure repos via `~/.config/fizban/env` (single source of truth):
 
 ```bash
-export FIZBAN_REPOS="/home/user/docs/guides,/home/user/docs/infrastructure"
+mkdir -p ~/.config/fizban
+cat > ~/.config/fizban/env << 'EOF'
+# Comma-separated absolute paths to documentation repositories
+FIZBAN_REPOS="${HOME}/Documents/repo1,${HOME}/Documents/repo2"
+EOF
+```
+
+The repo ships with a `run.sh` wrapper that sources this file before running fizban.
+Use it for both CLI and MCP so paths are never hardcoded in multiple places:
+
+```bash
+~/fizban/run.sh doctor
+~/fizban/run.sh rebuild
 ```
 
 ## MCP Server
 
 ### Registering with Claude Code
 
-Add to `.mcp.json` (project-level) or `~/.claude.json` (global):
+Add to `~/.claude.json` (global):
 
 ```json
 {
   "mcpServers": {
     "fizban": {
-      "command": "fizban",
-      "args": ["serve-mcp"],
-      "env": {
-        "FIZBAN_REPOS": "/path/to/repo1,/path/to/repo2"
-      }
+      "type": "stdio",
+      "command": "/home/YOURUSER/fizban/run.sh",
+      "args": ["serve-mcp"]
     }
   }
 }
 ```
 
-> **Important**: The `FIZBAN_REPOS` env var must be passed in the MCP server config. Without it, `repos_pull_all`, `index_rebuild`, and `index_update` will have no repos to operate on.
+No `env` block needed — `run.sh` loads `~/.config/fizban/env` automatically.
+
+> **Important**: `FIZBAN_REPOS` must be configured (either via the env file or
+> in the MCP config `env` block). Without it, `repos_pull_all`, `index_rebuild`,
+> and `index_update` will have no repos to operate on.
 
 ### Available MCP Tools
 
@@ -122,6 +138,7 @@ fizban -v rebuild
 fizban/
 ├── pyproject.toml          # Project config & dependencies
 ├── README.md
+├── run.sh                  # Wrapper: loads ~/.config/fizban/env, runs fizban
 ├── fizban/
 │   ├── __init__.py
 │   ├── config.py           # Configuration (env vars + defaults)
