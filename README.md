@@ -80,11 +80,16 @@ Add to `.mcp.json` (project-level) or `~/.claude.json` (global):
   "mcpServers": {
     "fizban": {
       "command": "fizban",
-      "args": ["serve-mcp"]
+      "args": ["serve-mcp"],
+      "env": {
+        "FIZBAN_REPOS": "/path/to/repo1,/path/to/repo2"
+      }
     }
   }
 }
 ```
+
+> **Important**: The `FIZBAN_REPOS` env var must be passed in the MCP server config. Without it, `repos_pull_all`, `index_rebuild`, and `index_update` will have no repos to operate on.
 
 ### Available MCP Tools
 

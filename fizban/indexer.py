@@ -156,6 +156,10 @@ def rebuild_index(config: Config | None = None) -> dict:
         Stats dict with counts.
     """
     config = config or get_config()
+
+    if not config.repos:
+        return {"total_files": 0, "indexed": 0, "error": "No repos configured. Set FIZBAN_REPOS to avoid accidental data wipe."}
+
     db = Database(config)
     db.init_db()
     embeddings = EmbeddingModel(config)
@@ -188,6 +192,10 @@ def update_index(config: Config | None = None) -> dict:
         Stats dict with counts.
     """
     config = config or get_config()
+
+    if not config.repos:
+        return {"total_files": 0, "indexed": 0, "removed": 0, "error": "No repos configured. Set FIZBAN_REPOS to avoid accidental data removal."}
+
     db = Database(config)
     db.init_db()
     embeddings = EmbeddingModel(config)
